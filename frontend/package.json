@@ -1,0 +1,15 @@
+{
+  "name": "meshmind-frontend",
+  "private": true,
+  "workspaces": [
+    "packages/shared/*",
+    "packages/qa",
+    "packages/workbench"
+  ],
+  "scripts": {
+    "dev:qa": "npm -w packages/qa run dev",
+    "dev:workbench": "npm -w packages/workbench run dev",
+    "build:qa": "npm -w packages/qa run build",
+    "build:workbench": "npm -w packages/workbench run build"
+  }
+}
