@@ -221,3 +221,4 @@ __marimo__/
 temp-anthropic-skills/
 node_modules/
 .claude/
+storage/

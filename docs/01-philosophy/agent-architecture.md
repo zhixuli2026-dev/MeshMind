@@ -61,3 +61,36 @@ Knowledge Agent 的 React Loop 是一个持续决策循环：
 - Agent 回答问题的过程产生新知识（对话提炼）
 - 新知识回写到知识生命周期系统，纳入图谱
 - 形成"使用 → 产生 → 维护"的闭环
+
+## 前端可见性
+
+Agent 的工作过程必须对用户**完全可见**，通过 SSE 实时推送：
+
+- Main Agent 的 spawn 决策和子 Agent 列表
+- 每个 Knowledge Agent 的 React Loop 状态（Think/Act/Observe）
+- 知识检索的路径（深度扩展/广度扩展）
+- 最终回答的知识溯源标记
+
+## React Loop 实现方案
+
+**已决策：基于 LangGraph StateGraph 自实现。**
+
+### 选择理由
+
+- `langgraph` 已在项目依赖中
+- 原生支持 streaming（每个节点转换产生事件 → 映射为 SSE Think/Act/Observe）
+- 支持 subgraph → 天然支持 Agent spawn 嵌套
+- 完全可控的节点内逻辑，Pro/Flash 路由在节点内部自由切换
+- 比 LangChain AgentExecutor 更透明，比 DeepAgents 更成熟
+
+### 核心结构
+
+```
+StateGraph(AgentState)
+  ├── think: LLM 分析当前信息，判断还缺什么 → Pro
+  ├── act: 检索知识 / 加载文档 → Flash/Pro 混合
+  ├── observe: 评估新获取的知识，判断是否足够 → Pro
+  └── 条件边: 够 → END / 不够 → think
+```
+
+每个节点产生 state transition 事件 → SSE 推送到前端。
