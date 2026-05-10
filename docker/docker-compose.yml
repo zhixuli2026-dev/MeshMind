@@ -1,0 +1,16 @@
+services:
+  meshmind-db:
+    build: .
+    container_name: meshmind-postgres
+    environment:
+      POSTGRES_DB: meshmind
+      POSTGRES_USER: meshmind
+      POSTGRES_PASSWORD: meshmind_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - meshmind_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  meshmind_data:
