@@ -31,11 +31,26 @@ app.add_middleware(
 )
 
 
-from meshmind.api.routes import search, nodes, extract
+from meshmind.api.routes import (
+    auth, documents, extract, members, nodes, relations, search, workspaces,
+)
+from meshmind.api.sse import agent as sse_agent, task as sse_task
 
-app.include_router(search.router)
-app.include_router(nodes.router)
-app.include_router(extract.router)
+routers = [search, nodes, extract, workspaces, auth, members, relations, documents]
+for r in routers:
+    app.include_router(r.router, prefix="/api/v1")
+
+from meshmind.mcp.server import create_mcp_server
+
+app.include_router(sse_agent.router, prefix="/api/v1")
+app.include_router(sse_task.router, prefix="/api/v1")
+
+mcp = create_mcp_server()
+
+
+@app.get("/health")
+async def health():
+    return {"status": "ok", "version": "0.1.0"}
 
 
 @app.get("/health")

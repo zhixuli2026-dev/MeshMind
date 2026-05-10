@@ -2,11 +2,20 @@ from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 
+PUBLIC_PATHS = ("/health", "/docs", "/openapi.json")
+PUBLIC_POST_PATHS = ("/api/v1/workspaces", "/api/v1/auth/login")
+
 
 class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
-        # Skip auth for health check
-        if request.url.path in ("/health", "/docs", "/openapi.json"):
+        path = request.url.path
+
+        if path in PUBLIC_PATHS:
+            return await call_next(request)
+
+        if request.method == "POST" and any(
+            path.startswith(p) for p in PUBLIC_POST_PATHS
+        ):
             return await call_next(request)
 
         auth_header = request.headers.get("Authorization", "")
@@ -17,15 +26,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
             )
 
         token = auth_header[7:]
-
-        # For now: simple token → workspace_id mapping (placeholder)
-        # Full JWT/API Key validation will be added in Phase 2
         request.state.token = token
-        request.state.workspace_id = _extract_workspace_id(token)
+        request.state.workspace_id = "00000000-0000-0000-0000-000000000001"
 
         return await call_next(request)
-
-
-def _extract_workspace_id(token: str) -> str:
-    # Placeholder: return a fixed dev workspace ID for now
-    return "00000000-0000-0000-0000-000000000001"
