@@ -6,11 +6,18 @@ PUBLIC_PATHS = ("/health", "/docs", "/openapi.json")
 PUBLIC_POST_PATHS = ("/api/v1/workspaces", "/api/v1/auth/login")
 
 
+def _extract_token(request: Request) -> str | None:
+    auth = request.headers.get("Authorization", "")
+    if auth.startswith("Bearer "):
+        return auth[7:]
+    return request.query_params.get("token")
+
+
 class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         path = request.url.path
 
-        if path in PUBLIC_PATHS:
+        if path in PUBLIC_PATHS or path.startswith("/api/v1/docs"):
             return await call_next(request)
 
         if request.method == "POST" and any(
@@ -18,14 +25,13 @@ class AuthMiddleware(BaseHTTPMiddleware):
         ):
             return await call_next(request)
 
-        auth_header = request.headers.get("Authorization", "")
-        if not auth_header.startswith("Bearer "):
+        token = _extract_token(request)
+        if token is None:
             return JSONResponse(
                 status_code=401,
                 content={"error": {"code": "UNAUTHORIZED", "message": "Missing Bearer token"}},
             )
 
-        token = auth_header[7:]
         request.state.token = token
         request.state.workspace_id = "00000000-0000-0000-0000-000000000001"
 

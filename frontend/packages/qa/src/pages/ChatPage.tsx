@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { ChatPanel } from '../components/ChatPanel';
 import { AgentTree } from '../components/AgentTree';
 import { ReactLoopTimeline } from '../components/ReactLoopTimeline';
@@ -44,7 +44,8 @@ const sourceStyle: React.CSSProperties = {
 };
 
 export const ChatPage: React.FC = () => {
-  const [workspaceId, setWorkspaceId] = useState('');
+  const [workspaceId, setWorkspaceId] = useState(localStorage.getItem('meshmind_workspace_id') || '');
+  const [token, setToken] = useState(localStorage.getItem('meshmind_token') || '');
   const [messages, setMessages] = useState<Array<{ role: string; content: string; sources?: Source[] }>>([]);
   const [agents, setAgents] = useState<AgentState[]>([]);
   const [loopSteps, setLoopSteps] = useState<Array<{ agent_id: string; step: string; detail: string }>>([]);
@@ -52,6 +53,27 @@ export const ChatPage: React.FC = () => {
   const [connected, setConnected] = useState(false);
   const [thinking, setThinking] = useState(false);
   const [answer, setAnswer] = useState('');
+
+  // Auto-create workspace if none exists
+  useEffect(() => {
+    if (!workspaceId) {
+      fetch('/api/v1/workspaces', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Default Workspace', description: 'Auto-created' }),
+      }).then(r => r.json()).then(data => {
+        if (data.workspace_id) {
+          localStorage.setItem('meshmind_workspace_id', data.workspace_id);
+          localStorage.setItem('meshmind_token', data.api_key);
+          setWorkspaceId(data.workspace_id);
+          setToken(data.api_key);
+        }
+      }).catch(() => {});
+    } else if (!token) {
+      setToken('dev-token');
+      localStorage.setItem('meshmind_token', 'dev-token');
+    }
+  }, []);
 
   const { connect } = useAgentSSE();
 
@@ -64,8 +86,9 @@ export const ChatPage: React.FC = () => {
     setLoopSteps([]);
     setSources([]);
 
-    const convId = crypto.randomUUID();
-    connect(`/api/v1/workspaces/${workspaceId}/sse/agent/${convId}?q=${encodeURIComponent(question)}`, {
+    const convId = 'conv-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+    const token = localStorage.getItem('meshmind_token') || 'dev-token';
+    connect(`/api/v1/workspaces/${workspaceId}/sse/agent/${convId}?q=${encodeURIComponent(question)}&token=${token}`, {
       agent_start: (d) => { setConnected(true); },
       main_agent_spawn: (d) => {
         setAgents(prev => [...prev, { id: d.agent_id, topic: d.topic, status: 'thinking' }]);
@@ -97,7 +120,8 @@ export const ChatPage: React.FC = () => {
       },
       error: (d) => {
         setThinking(false);
-        setMessages(prev => [...prev, { role: 'agent', content: `Error: ${d.message}` }]);
+        const msg = d && d.message ? d.message : (typeof d === 'string' ? d : 'Connection failed');
+        setMessages(prev => [...prev, { role: 'agent', content: `Error: ${msg}` }]);
       },
     });
   }, [workspaceId, connect]);
