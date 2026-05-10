@@ -216,3 +216,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# MeshMind project
+temp-anthropic-skills/
+node_modules/
+.claude/
