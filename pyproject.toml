@@ -1,0 +1,53 @@
+[tool.poetry]
+name = "meshmind"
+version = "0.1.0"
+description = "LLM-powered knowledge lifecycle management for AI agent ecosystems"
+authors = ["MeshMind Team"]
+license = "MIT"
+readme = "README.md"
+keywords = ["llm", "knowledge-graph", "agent", "memory", "rag"]
+packages = [{include = "meshmind", from = "src"}]
+
+[tool.poetry.dependencies]
+python = ">=3.11"
+fastapi = ">=0.115"
+uvicorn = {version = ">=0.34", extras = ["standard"]}
+asyncpg = ">=0.30"
+psycopg2-binary = ">=2.9"
+langchain = ">=0.3"
+langgraph = ">=0.2"
+langchain-deepseek = ">=0.1"
+pydantic = ">=2.10"
+pydantic-settings = ">=2.7"
+sqlalchemy = {version = ">=2.0", extras = ["asyncio"]}
+alembic = ">=1.14"
+pgvector = ">=0.3"
+httpx = ">=0.28"
+python-dotenv = ">=1.0"
+python-jose = {version = ">=3.3", extras = ["cryptography"]}
+passlib = {version = ">=1.7", extras = ["bcrypt"]}
+mcp = ">=1.0"
+sentence-transformers = ">=3.0"
+pyyaml = ">=6.0"
+openai = ">=1.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=8.4"
+pytest-asyncio = ">=0.25"
+ruff = ">=0.11"
+mypy = ">=1.14"
+
+[build-system]
+requires = ["poetry-core>=2.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
