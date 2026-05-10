@@ -26,6 +26,24 @@ Workspace 之间互相隔离。一个 Workspace 内的知识不会被其他 Work
 
 每个 Workspace 对应一个或多个**知识域（Knowledge Domain）**，代表该团队关注的知识范围。团队内的所有知识活动都围绕这些域展开。
 
+## 注册流程
+
+每个团队通过注册创建自己的 Workspace：
+
+1. 用户创建 Workspace，填写团队名和描述
+2. 系统初始化隔离的知识环境
+3. 创建者自动成为管理员
+
+## Workspace 管理员
+
+每个 Workspace 由管理员维护：
+
+- 管理团队成员（添加/移除/权限）
+- 定义 Law 类型知识（只有管理员可写 Law）
+- 手动维护知识（编辑、删除、标记）
+- 配置 Workspace 参数（半衰期等）
+- 通过 Workbench 进行操作
+
 ## 设计含义
 
 - Workspace 是 MeshMind 的最高层级组织单元
